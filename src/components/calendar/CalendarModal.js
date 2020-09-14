@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 import DateTimePicker from 'react-datetime-picker';
 import moment from 'moment';
+import Swal from 'sweetalert2';
 const customStyles = {
   content: {
     top: '50%',
@@ -16,18 +17,19 @@ const customStyles = {
 Modal.setAppElement('#root');
 
 const now = moment().minutes(0).second(0).add(1, 'hours');
-const end = moment().minutes(0).second(0).add(2, 'hours');
+const finish = moment().minutes(0).second(0).add(2, 'hours');
 export const CalendarModal = () => {
   const [dateStart, setDateStart] = useState(now.toDate());
-  const [dateEnd, setDateEnd] = useState(end.toDate());
+  const [dateEnd, setDateEnd] = useState(finish.toDate());
+  const [titleValid, setTitleValid] = useState(true);
   const [formValues, setFormValues] = useState({
     title: 'Evento',
     notes: '',
     start: now.toDate(),
-    end: end.toDate(),
+    end: finish.toDate(),
   });
 
-  const { notes, title } = formValues;
+  const { notes, title, start, end } = formValues;
 
   const handleInputChange = ({ target }) => {
     setFormValues({
@@ -52,7 +54,19 @@ export const CalendarModal = () => {
 
   const handleSubmitForm = (e) => {
     e.preventDefault();
-    console.log(formValues);
+
+    const momentStart = moment(start);
+    const momentEnd = moment(end);
+    if (momentStart.isSameOrAfter(momentEnd)) {
+      return Swal.fire('Error', 'Date end must be after the start', 'error');
+    }
+    if (title.trim().length < 2) {
+      setTitleValid(false);
+      return;
+    }
+
+    setTitleValid(true);
+    closeModal();
   };
   const closeModal = () => {};
   return (
@@ -92,7 +106,7 @@ export const CalendarModal = () => {
           <label>Titulo y notas</label>
           <input
             type='text'
-            className='form-control'
+            className={`form-control ${!titleValid && 'is-invalid'}`}
             placeholder='Título del evento'
             name='title'
             autoComplete='off'
